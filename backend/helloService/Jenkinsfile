@@ -1,0 +1,124 @@
+pipeline {
+    agent any
+
+    environment {
+        GIT_REPO="https://github.com/thirumalai-py/mern-orchestration"
+        AWS_REGION = "ap-south-1"
+        ECR_REPO = "975050024946.dkr.ecr.ap-south-1.amazonaws.com/thirumalai-b10/m-hello"
+        IMAGE_TAG = "dev-${BUILD_NUMBER}"
+        AWS_ACCESS_KEY_ID = credentials('thiru-access-key-id')
+        AWS_SECRET_ACCESS_KEY = credentials('thiru-secret-access-key')
+        CLUSTER_NAME = "thiru-mern-cluster"
+        DATABASE_URL = credentials('mern-database')
+        EC2_SSH = 'thiru-ec2'
+        EC2_USER= credentials('ec2-backend-user')
+        EC2_HOST= credentials('ec2-backend-host')
+        CONTAINER_NAME= "api-hello"
+        CONTAINER_PORT= 3001
+    }
+
+    stages {
+
+        stage("Checkout Git repo") {
+            steps {
+                git(
+                    url: "${GIT_REPO}",
+                    branch: 'main',
+                    credentialsId: 'thiru-github-access'               
+                )
+            }
+        }
+
+        stage("Build Docker image") {
+            steps {
+                sh """
+                    cd backend/helloService
+                    ls
+
+                    echo "Building Docker image.."
+
+                    docker build -t ${ECR_REPO}:${IMAGE_TAG} .
+
+                """
+            }
+        }
+
+        stage("Login to ECR"){
+            steps {
+                sh """
+                    export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+                    export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+                    export AWS_DEFAULT_REGION=${AWS_REGION}
+
+                    echo "Login to ECR..."
+
+                    aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REPO}
+
+                """
+            }
+        }
+
+        stage("Push Docker image to ECR"){
+            steps {
+                sh """
+                    docker push ${ECR_REPO}:${IMAGE_TAG}
+                """
+            }
+        }
+
+        stage("Clean Jenkins Docker Images"){
+            steps{
+                sh"""
+                    echo "Image list for cleaning.."
+                    docker images -q
+
+                    echo "Cleaning Docker images"
+                    docker rmi -f \$(docker images -q)
+                """
+            }
+        }
+
+        stage("Deploy to EC2") {
+            steps{
+                sshagent(credentials: [env.EC2_SSH]) {
+                    sh """
+                        echo "Connecting to EC2.."
+                        ssh -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} '
+                            export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+                            export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+                            export AWS_DEFAULT_REGION=${AWS_REGION}
+                            
+                            echo "Login success.."
+
+                            ls
+
+                            sudo usermod -aG docker ${EC2_USER}
+
+                            aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REPO}
+
+                            echo "Pulling ECR Image..."
+                            docker pull ${ECR_REPO}:${IMAGE_TAG}
+
+                            echo "Remove Running containers.."
+                            docker stop ${CONTAINER_NAME} || true
+                            docker rm ${CONTAINER_NAME} || true
+
+                            echo "Start the new container.."
+                            docker run -d -p ${CONTAINER_PORT}:${CONTAINER_PORT} \
+                            --name ${CONTAINER_NAME} \
+                            -e PORT=${CONTAINER_PORT} \
+                            -e MONGO_URL="${DATABASE_URL}" \
+                            --restart unless-stopped \
+                            ${ECR_REPO}:${IMAGE_TAG}
+
+                            echo "Deployment done.."
+
+                        '
+                    """
+                }
+            }
+        }
+
+    }
+
+}
