@@ -200,7 +200,7 @@ You can also deploy the MERN microservices stack to **Amazon EKS (Elastic Kubern
 #### 2. Configure Kubeconfig in Jenkins Agent:
 
 ```
-aws eks update-kubeconfig --region ap-south-1 --name thiru-mern-cluster
+aws eks update-kubeconfig --region ap-south-1 --name vipul-mern-cluster
 ```
 
 #### 3. Build & Push Docker Images to ECR:
