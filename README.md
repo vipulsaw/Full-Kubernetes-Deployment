@@ -65,18 +65,18 @@ Each Jenkinsfile performs the following stages:
 
 ## 🔐 Jenkins Credentials Used
 
-| ID                      | Description                             |
-|-------------------------|-----------------------------------------|
-| `thiru-access-key-id`   | AWS Access Key ID                       |
-| `thiru-secret-access-key` | AWS Secret Access Key                 |
-| `thiru-ec2`             | EC2 private SSH key                     |
-| `ec2-backend-user`      | EC2 username (`ec2-user` or custom)     |
-| `ec2-backend-host`      | EC2 public IP                           |
-| `mern-database`         | MongoDB connection string               |
-| `thiru-github-access`   | GitHub token/credentials                |
-| `mern-database`         | Database Url                            |
-| `ec2-frontend-user`     | EC2 username (`ec2-user` or custom)     |
-| `ec2-frontend-host`     | EC2 public IP                           |
+ | Description                             |
+ |-----------------------------------------|
+ | AWS Access Key ID                       |
+ | AWS Secret Access Key                 |
+ | EC2 private SSH key                     |
+ | EC2 username (`ec2-user` or custom)     |
+ | EC2 public IP                           |
+ | MongoDB connection string               |
+ | GitHub token/credentials                |
+ | Database Url                            |
+ | EC2 username (`ec2-user` or custom)     |
+ | EC2 public IP                           |
 
 
 ---
@@ -168,65 +168,23 @@ server {
 
 ### Backend Outputs
 
-Jenkins Hello API
-
-![alt text](output/hello_jenkins.png)
-
-ECR hello API
-
-![alt text](output/ecr_hello.png)
-
-Jenkins Profile API
-
-![alt text](output/profile_jenkins.png)
-
-ECR Profile API
-
-![alt text](output/ecr_profile.png)
-
-Docker Ouput - Backend
-
-![alt text](output/dockers_backend.png)
-
-Note: The backend can be run in 2 servers if needed for hello API and Profile APi, to demo purpose i have used single EC2 to both the API
-
 Hello API Output with IP
 
-![alt text](output/api_hello_with_ip.png)
+<img width="399" height="58" alt="image" src="https://github.com/user-attachments/assets/23a5c792-f37b-445d-a108-831ce853b604" />
+
 
 Hello API Output with Website Address
 
-![alt text](output/api_hello.png)
-
-USER API Output with IP
-
-![alt text](output/api_user_with_ip.png)
-
-User API Output with Website Address
-
-![alt text](output/api_user.png)
-
-### Frontend Outputs
-
-Jenkins Front End
-
-![alt text](output/front_jenkins.png)
-
-ECR frontend
-
-![alt text](output/ecr_frontend.png)
+<img width="421" height="53" alt="image" src="https://github.com/user-attachments/assets/3a173cb4-d35c-4cf4-b56c-ec59ae28e64d" />
 
 Website Output frontend Via IP
 
-![alt text](output/front_ip.png)
+<img width="459" height="75" alt="image" src="https://github.com/user-attachments/assets/e6bd8e1a-96f0-4646-932d-8a918eef8ec5" />
+
 
 Website Output frontend Via Website
 
-![alt text](output/front_domain.png)
-
-AWS Instance List
-
-![alt text](output/aws_output.png)
+<img width="434" height="77" alt="image" src="https://github.com/user-attachments/assets/70990c09-1fce-4892-bb6d-a17b812e61cb" />
 
 
 ## ☸️ Jenkins + EKS Deployment (Optional Variant)
@@ -258,7 +216,7 @@ In Jenkins, add a Helm deploy will have something like below:
 ```
 helm upgrade --install mern-website . \
 -f values.yaml \
---set-string image.repository="thirumalaipy/mernwebsite" \
+--set-string image.repository="vipulsaw/mernwebsite" \
 --set-string image.tag="v1" \
 --set-string hello_service="<url>" \
 --set-string profile_service="<url>" \
@@ -279,10 +237,6 @@ The same helm will customised for the hello and profile services
 
 - Use Horizontal Pod Autoscalers (HPA) for autoscaling based on CPU/requests
 
-**Releated Previous Assignments**
-
-- https://github.com/thirumalai-py/k8-learner-backend
-- https://github.com/thirumalai-py/k8-learner-frontend 
 
 
 
